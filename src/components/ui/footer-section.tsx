@@ -53,16 +53,16 @@ function Footerdemo() {
           <div>
             <h3 className="mb-4 text-lg font-semibold">Platform</h3>
             <nav className="space-y-2 text-sm">
-              <a href="#" className="block transition-colors hover:text-white text-zinc-400">
+              <a href="/#features" className="block transition-colors hover:text-white text-zinc-400">
                 Features
               </a>
-              <a href="#" className="block transition-colors hover:text-white text-zinc-400">
+              <a href="/#pricing" className="block transition-colors hover:text-white text-zinc-400">
                 Pricing
               </a>
-              <a href="#" className="block transition-colors hover:text-white text-zinc-400">
+              <a href="/#roadmap" className="block transition-colors hover:text-white text-zinc-400">
                 GEO Roadmap
               </a>
-              <a href="#" className="block transition-colors hover:text-white text-zinc-400">
+              <a href="/#testimonials" className="block transition-colors hover:text-white text-zinc-400">
                 Case Studies
               </a>
             </nav>
@@ -70,11 +70,11 @@ function Footerdemo() {
           <div>
             <h3 className="mb-4 text-lg font-semibold">Resources</h3>
             <nav className="space-y-2 text-sm">
-              <a href="#" className="block transition-colors hover:text-white text-zinc-400">
+              <a href="/blog" className="block transition-colors hover:text-white text-zinc-400">
                 Blog
               </a>
-              <a href="#" className="block transition-colors hover:text-white text-zinc-400">
-                Documentation
+              <a href="/faq" className="block transition-colors hover:text-white text-zinc-400">
+                FAQ
               </a>
               <a href="#" className="block transition-colors hover:text-white text-zinc-400">
                 API Reference

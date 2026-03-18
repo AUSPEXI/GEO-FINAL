@@ -10,7 +10,7 @@ export const blogPosts = [
     title: "The Death of the Blue Link: Why SEO is Evolving",
     category: "Industry Trends",
     date: "Mar 12, 2026",
-    image: "https://images.unsplash.com/photo-1633265486064-086b219458ce?w=800&q=80",
+    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80",
     excerpt: "Traditional search engines are losing market share to generative AI. Here's how to adapt your strategy for the new era of zero-click search."
   },
   {

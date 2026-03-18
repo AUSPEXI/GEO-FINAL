@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SparklesCore } from '@/components/ui/sparkles';
 import { SplineScene } from '@/components/ui/splite';
 import { BentoGrid, BentoCard } from '@/components/ui/bento-grid';
@@ -14,16 +14,31 @@ import { Input } from '@/components/ui/input';
 import { LeadCaptureModal } from '@/components/ui/lead-capture-modal';
 import { useAuth } from '@/contexts/AuthContext';
 import { PublicHeader } from '@/components/ui/public-header';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { blogPosts } from './BlogPage';
 
 export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
   const { user } = useAuth();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [domain, setDomain] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalSource, setModalSource] = useState('trial');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.replace('#', '');
+      const element = document.getElementById(id);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location]);
 
   const handleCheckout = async (tier: string) => {
     if (!user) {
@@ -365,7 +380,7 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
       </section>
 
       {/* Testimonials */}
-      <section className="py-24 bg-zinc-900/30 border-y border-zinc-900 overflow-hidden">
+      <section id="testimonials" className="py-24 bg-zinc-900/30 border-y border-zinc-900 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold font-heading mb-4">Trusted by Pioneers</h2>
