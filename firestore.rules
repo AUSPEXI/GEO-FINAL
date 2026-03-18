@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    
+    function uidUnchanged() {
+      return !('userId' in request.resource.data) || request.resource.data.userId == request.auth.uid;
+    }
+    
+    function uidNotModified() {
+      return !('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId;
+    }
+    
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}.*$");
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "hopiumcalculator@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['email', 'name', 'role', 'tier']) &&
+             data.email is string && isValidEmail(data.email) &&
+             (!('name' in data) || (data.name is string && data.name.size() <= 100)) &&
+             (!('role' in data) || data.role in ['admin', 'user']) &&
+             (!('tier' in data) || data.tier in ['Free', 'Basic', 'Medium', 'Premium']);
+    }
+
+    function isValidSovMetric(data) {
+      return hasOnlyAllowedFields(['userId', 'date', 'directTraffic', 'aiCitations']) &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() < 50 &&
+             data.date is string && isValidDateString(data.date) &&
+             data.directTraffic is number && data.directTraffic >= 0 &&
+             data.aiCitations is number && data.aiCitations >= 0;
+    }
+
+    function isValidFact(data) {
+      return hasOnlyAllowedFields(['userId', 'statement', 'entropyScore', 'cliffhangerActive', 'category', 'createdAt']) &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() < 50 &&
+             data.statement is string && data.statement.size() > 0 && data.statement.size() <= 1000 &&
+             data.entropyScore is number && data.entropyScore >= 0 && data.entropyScore <= 100 &&
+             data.cliffhangerActive is bool &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 100 &&
+             data.createdAt is string && isValidDateString(data.createdAt);
+    }
+
+    function isValidCompetitor(data) {
+      return hasOnlyAllowedFields(['userId', 'name', 'decayStatus', 'trojanHorseOpportunity', 'lastUpdated']) &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() < 50 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.decayStatus in ['healthy', 'decaying', 'stale'] &&
+             data.trojanHorseOpportunity is bool &&
+             data.lastUpdated is string && isValidDateString(data.lastUpdated);
+    }
+
+    function isValidLead(data) {
+      return hasOnlyAllowedFields(['email', 'source', 'status', 'createdAt']) &&
+             data.email is string && isValidEmail(data.email) &&
+             data.source is string && data.source.size() <= 100 &&
+             data.status in ['new', 'contacted'] &&
+             data.createdAt is string && isValidDateString(data.createdAt);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && ((isOwner(userId) && (!('role' in request.resource.data) || request.resource.data.role == 'user')) || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && ((isOwner(userId) && (!('role' in request.resource.data) || ('role' in resource.data && request.resource.data.role == resource.data.role))) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /sovMetrics/{metricId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidSovMetric(request.resource.data) && uidUnchanged();
+      allow update: if isAuthenticated() && isDocOwner() && isValidSovMetric(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /facts/{factId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidFact(request.resource.data) && uidUnchanged();
+      allow update: if isAuthenticated() && isDocOwner() && isValidFact(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /competitors/{competitorId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidCompetitor(request.resource.data) && uidUnchanged();
+      allow update: if isAuthenticated() && isDocOwner() && isValidCompetitor(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /leads/{leadId} {
+      allow read: if isAdmin();
+      allow create: if isValidLead(request.resource.data) && request.resource.data.status == 'new';
+      allow update: if isAdmin() && isValidLead(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}
