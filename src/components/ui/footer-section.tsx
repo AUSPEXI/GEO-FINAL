@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Facebook, Instagram, Linkedin, Moon, Send, Sun, Twitter } from "lucide-react"
+import { Link } from "react-router-dom"
 
 function Footerdemo() {
   const [isDarkMode, setIsDarkMode] = React.useState(true)
@@ -53,29 +54,35 @@ function Footerdemo() {
           <div>
             <h3 className="mb-4 text-lg font-semibold">Platform</h3>
             <nav className="space-y-2 text-sm">
-              <a href="/#features" className="block transition-colors hover:text-white text-zinc-400">
+              <Link to="/about" className="block transition-colors hover:text-white text-zinc-400">
+                About
+              </Link>
+              <Link to="/#features" className="block transition-colors hover:text-white text-zinc-400">
                 Features
-              </a>
-              <a href="/#pricing" className="block transition-colors hover:text-white text-zinc-400">
+              </Link>
+              <Link to="/#pricing" className="block transition-colors hover:text-white text-zinc-400">
                 Pricing
-              </a>
-              <a href="/#roadmap" className="block transition-colors hover:text-white text-zinc-400">
+              </Link>
+              <Link to="/#roadmap" className="block transition-colors hover:text-white text-zinc-400">
                 GEO Roadmap
-              </a>
-              <a href="/#testimonials" className="block transition-colors hover:text-white text-zinc-400">
+              </Link>
+              <Link to="/voice-agents" className="block transition-colors hover:text-white text-zinc-400">
+                Voice Agents
+              </Link>
+              <Link to="/#testimonials" className="block transition-colors hover:text-white text-zinc-400">
                 Case Studies
-              </a>
+              </Link>
             </nav>
           </div>
           <div>
             <h3 className="mb-4 text-lg font-semibold">Resources</h3>
             <nav className="space-y-2 text-sm">
-              <a href="/blog" className="block transition-colors hover:text-white text-zinc-400">
+              <Link to="/blog" className="block transition-colors hover:text-white text-zinc-400">
                 Blog
-              </a>
-              <a href="/faq" className="block transition-colors hover:text-white text-zinc-400">
+              </Link>
+              <Link to="/faq" className="block transition-colors hover:text-white text-zinc-400">
                 FAQ
-              </a>
+              </Link>
               <a href="#" className="block transition-colors hover:text-white text-zinc-400">
                 API Reference
               </a>

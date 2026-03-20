@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { X, CheckCircle2, Loader2, Sparkles, FileText, ArrowRight } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { useAuth } from '@/contexts/AuthContext';
+import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
 
 interface LeadCaptureModalProps {
   isOpen: boolean;
@@ -33,13 +34,17 @@ export function LeadCaptureModal({ isOpen, onClose, source }: LeadCaptureModalPr
 
     try {
       // Save lead to Firestore
-      await addDoc(collection(db, 'leads'), {
-        email,
-        domain,
-        source,
-        status: 'new',
-        createdAt: new Date().toISOString().split('T')[0] + 'T00:00:00Z',
-      });
+      try {
+        await addDoc(collection(db, 'leads'), {
+          email,
+          domain,
+          source,
+          status: 'new',
+          createdAt: new Date().toISOString().split('T')[0] + 'T00:00:00Z',
+        });
+      } catch (error) {
+        handleFirestoreError(error, OperationType.CREATE, 'leads');
+      }
 
       // Generate the report
       const response = await fetch('/api/generate-report', {

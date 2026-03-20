@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
 
 interface SidebarProps {
   activeTab: string;
@@ -26,7 +27,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: SidebarP
   ];
 
   const hasAccess = (requiredTier: string) => {
-    const tiers = ['Free', 'Basic', 'Medium', 'Premium'];
+    const tiers = ['Free', 'Basic', 'Medium', 'Premium', 'LifetimeDeal'];
     const userTierIndex = tiers.indexOf(tier || 'Free');
     const requiredTierIndex = tiers.indexOf(requiredTier);
     return userTierIndex >= requiredTierIndex;
@@ -40,8 +41,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: SidebarP
       await setDoc(doc(db, 'users', user.uid), { tier: newTier }, { merge: true });
       alert(`Test Upgrade: Tier set to ${newTier}`);
     } catch (error) {
-      console.error('Error upgrading tier:', error);
-      alert('Failed to upgrade tier. Check console for details.');
+      handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
     }
   };
 
@@ -107,7 +107,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: SidebarP
               Admin Tools
             </div>
             <div className="space-y-1">
-              {['Free', 'Basic', 'Medium', 'Premium'].map((t) => (
+              {['Free', 'Basic', 'Medium', 'Premium', 'LifetimeDeal'].map((t) => (
                 <button
                   key={t}
                   onClick={() => handleTestUpgrade(t)}

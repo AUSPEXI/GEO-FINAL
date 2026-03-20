@@ -26,20 +26,6 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
   const [modalSource, setModalSource] = useState('trial');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-  useEffect(() => {
-    if (location.hash) {
-      const id = location.hash.replace('#', '');
-      const element = document.getElementById(id);
-      if (element) {
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      }
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [location]);
-
   const handleCheckout = async (tier: string) => {
     if (!user) {
       onLoginClick();
@@ -505,8 +491,8 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
               tier="Premium"
               price="$4,999/mo"
               bestFor="For enterprise market leaders"
-              CTA="Contact Sales"
-              onClick={() => handleCheckout('Premium')}
+              CTA="Talk to AI Sales"
+              onClick={() => window.location.href = '/voice-agents'}
               benefits={[
                 { text: "Real-Time Dashboard", checked: true },
                 { text: "Edge SEO (Cloudflare Server-Side)", checked: true },

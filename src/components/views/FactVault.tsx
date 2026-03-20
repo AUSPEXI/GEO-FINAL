@@ -6,6 +6,7 @@ import { collection, addDoc, onSnapshot, query, where, orderBy } from 'firebase/
 import { GoogleGenAI } from '@google/genai';
 import { UpgradePrompt } from '@/components/ui/upgrade-prompt';
 import { AmplifyModal } from '@/components/ui/AmplifyModal';
+import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
 
 interface Fact {
   id: string;
@@ -40,6 +41,8 @@ export function FactVault() {
         factsData.push({ id: doc.id, ...doc.data() } as Fact);
       });
       setFacts(factsData);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'facts');
     });
 
     return () => unsubscribe();
@@ -124,8 +127,7 @@ export function FactVault() {
         setInputText('');
       }
     } catch (error) {
-      console.error('Error extracting facts:', error);
-      alert('Failed to extract facts. Please try again.');
+      handleFirestoreError(error, OperationType.CREATE, 'facts');
     } finally {
       setIsExtracting(false);
     }

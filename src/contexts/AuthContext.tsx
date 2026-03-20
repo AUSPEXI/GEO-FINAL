@@ -2,8 +2,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { auth, signInWithGoogle, logout, db } from '../firebase';
+import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
 
-export type UserTier = 'Free' | 'Basic' | 'Medium' | 'Premium';
+export type UserTier = 'Free' | 'Basic' | 'Medium' | 'Premium' | 'LifetimeDeal';
 
 interface AuthContextType {
   user: User | null;
@@ -40,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setTier('Free');
           }
         } catch (error) {
-          console.error("Error creating user doc:", error);
+          handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}`);
         }
 
         // Listen for real-time tier changes
@@ -51,8 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setTier('Free');
           }
         }, (error) => {
-          console.error("Error listening to user tier:", error);
-          setTier('Free');
+          handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}`);
         });
 
       } else {

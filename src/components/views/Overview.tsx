@@ -6,6 +6,7 @@ import { db } from '@/firebase';
 import { collection, addDoc, onSnapshot, query, where, orderBy, limit } from 'firebase/firestore';
 import { GoogleGenAI } from '@google/genai';
 import { UpgradePrompt } from '@/components/ui/upgrade-prompt';
+import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
 
 export function Overview() {
   const { user, tier } = useAuth();
@@ -29,6 +30,8 @@ export function Overview() {
         data.push({ id: doc.id, ...doc.data() });
       });
       setMetrics(data);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'sovMetrics');
     });
 
     return () => unsubscribe();
@@ -84,8 +87,7 @@ export function Overview() {
         aiCitations: Math.floor(Math.random() * 15) + 5
       });
     } catch (error) {
-      console.error('Error running audit:', error);
-      alert('Failed to run SOV audit.');
+      handleFirestoreError(error, OperationType.CREATE, 'sovMetrics');
     } finally {
       setIsAuditing(false);
     }

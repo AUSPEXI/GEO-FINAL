@@ -5,6 +5,7 @@ import { db } from '@/firebase';
 import { collection, addDoc, onSnapshot, query, where, orderBy } from 'firebase/firestore';
 import { GoogleGenAI } from '@google/genai';
 import { UpgradePrompt } from '@/components/ui/upgrade-prompt';
+import { handleFirestoreError, OperationType } from '@/lib/firestore-errors';
 
 interface Competitor {
   id: string;
@@ -36,6 +37,8 @@ export function Competitors() {
         compData.push({ id: doc.id, ...doc.data() } as Competitor);
       });
       setCompetitors(compData);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'competitors');
     });
 
     return () => unsubscribe();
@@ -110,8 +113,7 @@ export function Competitors() {
         setInputUrl('');
       }
     } catch (error) {
-      console.error('Error analyzing competitor:', error);
-      alert('Failed to analyze competitor. Please try again.');
+      handleFirestoreError(error, OperationType.CREATE, 'competitors');
     } finally {
       setIsAnalyzing(false);
     }
