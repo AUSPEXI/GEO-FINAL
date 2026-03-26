@@ -13,7 +13,7 @@ const firebaseConfig = {
 };
 
 if (!firebaseConfig.apiKey) {
-  throw new Error("Missing Firebase API Key. Please ensure your .env file is configured correctly with VITE_FIREBASE_API_KEY.");
+  console.error("Missing Firebase API Key. Please ensure your .env file is configured correctly with VITE_FIREBASE_API_KEY.");
 }
 
 // Initialize Firebase SDK
