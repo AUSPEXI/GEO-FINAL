@@ -12,6 +12,7 @@ import { BlogPostPage } from '@/components/views/BlogPostPage';
 import { FAQPage } from '@/components/views/FAQPage';
 import { VoiceAgentsPage } from '@/components/views/VoiceAgentsPage';
 import { AboutPage } from '@/components/views/AboutPage';
+import { ResourcesPage } from '@/components/views/ResourcesPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
@@ -66,6 +67,7 @@ export default function App() {
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/faq" element={<FAQPage />} />
+        <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/voice-agents" element={<VoiceAgentsPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />

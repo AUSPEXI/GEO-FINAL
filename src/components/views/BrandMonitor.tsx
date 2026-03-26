@@ -45,7 +45,7 @@ export function BrandMonitor() {
       const context = exaData.results.map((r: any) => `Title: ${r.title}\nURL: ${r.url}\nText: ${r.text}`).join("\n\n");
 
       // 2. Analyze sentiment with Gemini
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
       if (!apiKey) throw new Error("API key is missing");
       const ai = new GoogleGenAI({ apiKey });
 

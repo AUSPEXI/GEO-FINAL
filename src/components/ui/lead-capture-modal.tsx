@@ -38,7 +38,7 @@ export function LeadCaptureModal({ isOpen, onClose, source }: LeadCaptureModalPr
         await addDoc(collection(db, 'leads'), {
           email,
           domain,
-          source,
+          source: source || 'direct',
           status: 'new',
           createdAt: new Date().toISOString().split('T')[0] + 'T00:00:00Z',
         });

@@ -77,6 +77,9 @@ function Footerdemo() {
           <div>
             <h3 className="mb-4 text-lg font-semibold">Resources</h3>
             <nav className="space-y-2 text-sm">
+              <Link to="/resources" className="block transition-colors hover:text-white text-zinc-400">
+                Resources
+              </Link>
               <Link to="/blog" className="block transition-colors hover:text-white text-zinc-400">
                 Blog
               </Link>

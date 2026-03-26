@@ -8,8 +8,8 @@ export function FloatingVoiceButton() {
   const location = useLocation();
 
   useEffect(() => {
-    // Show the button after a short delay, but not on the voice-agents page itself
-    if (location.pathname === '/voice-agents') {
+    // Show the button after a short delay, but not on the voice-agents page itself or landing page
+    if (location.pathname === '/voice-agents' || location.pathname === '/') {
       setIsVisible(false);
       return;
     }

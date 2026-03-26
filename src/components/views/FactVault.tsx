@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Database, Lock, Unlock, CheckCircle2, AlertCircle, Plus, X, Loader2, Megaphone } from 'lucide-react';
+import { Database, Lock, Unlock, CheckCircle2, AlertCircle, Plus, X, Loader2, Megaphone, Sparkles, Search } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/firebase';
 import { collection, addDoc, onSnapshot, query, where, orderBy } from 'firebase/firestore';
@@ -22,8 +22,11 @@ export function FactVault() {
   const { user, tier } = useAuth();
   const [facts, setFacts] = useState<Fact[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isResearchModalOpen, setIsResearchModalOpen] = useState(false);
   const [inputText, setInputText] = useState('');
+  const [industry, setIndustry] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isResearching, setIsResearching] = useState(false);
   const [amplifyingFact, setAmplifyingFact] = useState<string | null>(null);
 
   useEffect(() => {
@@ -84,9 +87,9 @@ export function FactVault() {
 
     setIsExtracting(true);
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
       if (!apiKey) {
-        throw new Error("API key is missing");
+        throw new Error("Gemini API key is missing");
       }
       const ai = new GoogleGenAI({ apiKey });
 
@@ -133,6 +136,62 @@ export function FactVault() {
     }
   };
 
+  const handleResearch = async () => {
+    if (!industry.trim() || !user) return;
+    
+    if (isAtLimit) {
+      alert(`You have reached your limit of ${currentLimit} facts for the ${tier} tier. Please upgrade to extract more.`);
+      return;
+    }
+
+    setIsResearching(true);
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
+      if (!apiKey) {
+        throw new Error("Gemini API key is missing");
+      }
+      const ai = new GoogleGenAI({ apiKey });
+
+      const prompt = `
+        You are an expert Generative Engine Optimization (GEO) agent and NotebookLM-style research assistant.
+        The user's industry/domain is: "${industry}".
+        Generate 3 "High-Entropy Facts" (unique, non-obvious, highly specific data points or statistics that AI models would want to cite) related to this industry.
+        For each fact, assign an "Entropy Score" from 0 to 100 (higher means more unique).
+        
+        Return ONLY a JSON array of objects with 'statement' (string) and 'entropyScore' (number).
+      `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-pro-preview",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        }
+      });
+
+      const extractedFacts = JSON.parse(response.text || "[]");
+      
+      if (extractedFacts && Array.isArray(extractedFacts)) {
+        for (const fact of extractedFacts) {
+          await addDoc(collection(db, 'facts'), {
+            userId: user.uid,
+            statement: fact.statement,
+            entropyScore: fact.entropyScore,
+            cliffhangerActive: fact.entropyScore > 80,
+            category: 'Auto-Researched',
+            createdAt: new Date().toISOString().split('T')[0],
+          });
+        }
+        setIsResearchModalOpen(false);
+        setIndustry('');
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'facts');
+    } finally {
+      setIsResearching(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -149,10 +208,23 @@ export function FactVault() {
               if (isAtLimit) {
                 alert(`You have reached your limit of ${currentLimit} facts for the ${tier} tier. Please upgrade to extract more.`);
               } else {
+                setIsResearchModalOpen(true);
+              }
+            }}
+            className={`${isAtLimit ? 'bg-zinc-700 cursor-not-allowed' : 'bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30'} px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2`}
+          >
+            <Sparkles className="w-4 h-4" />
+            Auto-Research
+          </button>
+          <button 
+            onClick={() => {
+              if (isAtLimit) {
+                alert(`You have reached your limit of ${currentLimit} facts for the ${tier} tier. Please upgrade to extract more.`);
+              } else {
                 setIsModalOpen(true);
               }
             }}
-            className={`${isAtLimit ? 'bg-zinc-700 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'} text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2`}
+            className={`${isAtLimit ? 'bg-zinc-700 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'} px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2`}
           >
             <Database className="w-4 h-4" />
             Add New Fact
@@ -182,8 +254,32 @@ export function FactVault() {
             <tbody className="divide-y divide-zinc-800/50">
               {facts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-zinc-500">
-                    No facts in the vault yet. Click "Add New Fact" to extract some.
+                  <td colSpan={5} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center max-w-md mx-auto">
+                      <div className="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mb-4">
+                        <Database className="w-8 h-8 text-indigo-400" />
+                      </div>
+                      <h3 className="text-lg font-medium text-white mb-2">Your Fact-Vault is Empty</h3>
+                      <p className="text-zinc-400 text-sm mb-6">
+                        Store unique, high-entropy data points here to feed AI models. Not sure where to start? Let our NotebookLM-style research assistant generate some facts for your industry.
+                      </p>
+                      <div className="flex gap-3 w-full">
+                        <button
+                          onClick={() => setIsResearchModalOpen(true)}
+                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Sparkles className="w-4 h-4" />
+                          Research My Industry
+                        </button>
+                        <button
+                          onClick={() => setIsModalOpen(true)}
+                          className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Manually
+                        </button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -254,7 +350,7 @@ export function FactVault() {
             </div>
             <div className="p-6">
               <p className="text-sm text-zinc-400 mb-4">
-                Paste your blog post, whitepaper, or technical documentation below. Our Gemini 3.1 Pro engine will analyze the text and extract unique, non-obvious data points that AI models are likely to cite.
+                Paste your blog post, whitepaper, or technical documentation below. Our proprietary AI engine will analyze the text and extract unique, non-obvious data points that AI models are likely to cite.
               </p>
               <textarea
                 value={inputText}
@@ -284,6 +380,68 @@ export function FactVault() {
                   <>
                     <Database className="w-4 h-4" />
                     Extract & Save
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Research Modal */}
+      {isResearchModalOpen && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-indigo-400" />
+                NotebookLM Research
+              </h2>
+              <button 
+                onClick={() => setIsResearchModalOpen(false)}
+                className="text-zinc-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-zinc-400 mb-4">
+                Tell us your industry or domain. Our research assistant will generate high-entropy facts to kickstart your vault.
+              </p>
+              <input
+                type="text"
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                placeholder="e.g. B2B SaaS, Cybersecurity, Vegan Skincare..."
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && industry.trim() && !isResearching) {
+                    handleResearch();
+                  }
+                }}
+              />
+            </div>
+            <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 flex justify-end gap-3">
+              <button 
+                onClick={() => setIsResearchModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleResearch}
+                disabled={isResearching || !industry.trim()}
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                {isResearching ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Researching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4" />
+                    Generate Facts
                   </>
                 )}
               </button>

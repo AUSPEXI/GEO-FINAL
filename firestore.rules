@@ -52,7 +52,7 @@ service cloud.firestore {
     // ===============================================================
     function isValidUser(data) {
       return hasOnlyAllowedFields(['email', 'name', 'role', 'tier']) &&
-             data.email is string && isValidEmail(data.email) &&
+             (!('email' in data) || data.email == null || (data.email is string && isValidEmail(data.email))) &&
              (!('name' in data) || (data.name is string && data.name.size() <= 100)) &&
              (!('role' in data) || data.role in ['admin', 'user']) &&
              (!('tier' in data) || data.tier in ['Free', 'Basic', 'Medium', 'Premium', 'LifetimeDeal']);
@@ -81,12 +81,13 @@ service cloud.firestore {
     }
 
     function isValidCompetitor(data) {
-      return hasOnlyAllowedFields(['userId', 'name', 'decayStatus', 'trojanHorseOpportunity', 'lastUpdated']) &&
+      return hasOnlyAllowedFields(['userId', 'name', 'url', 'decayScore', 'lastUpdated', 'vulnerabilities']) &&
              data.userId is string && data.userId.size() > 0 && data.userId.size() < 50 &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-             data.decayStatus in ['healthy', 'decaying', 'stale'] &&
-             data.trojanHorseOpportunity is bool &&
-             data.lastUpdated is string && isValidDateString(data.lastUpdated);
+             data.url is string && data.url.size() <= 500 &&
+             data.decayScore is number && data.decayScore >= 0 && data.decayScore <= 100 &&
+             data.lastUpdated is string && isValidDateString(data.lastUpdated) &&
+             data.vulnerabilities is list && data.vulnerabilities.size() <= 20;
     }
 
     function isValidLead(data) {

@@ -12,6 +12,7 @@ export function Overview() {
   const { user, tier } = useAuth();
   const [metrics, setMetrics] = useState<any[]>([]);
   const [isAuditing, setIsAuditing] = useState(false);
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [shadowUrl, setShadowUrl] = useState('');
   const [generatedShadowLink, setGeneratedShadowLink] = useState('');
 
@@ -57,7 +58,7 @@ export function Overview() {
     if (!user) return;
     setIsAuditing(true);
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
       if (!apiKey) throw new Error("API key is missing");
       
       // Simulate Gemini analyzing current SOV
@@ -93,17 +94,31 @@ export function Overview() {
     }
   };
 
-  const generateShadowLink = () => {
+  const generateShadowLink = async () => {
     if (!shadowUrl.trim()) return;
+    setIsGeneratingLink(true);
     try {
-      const urlString = shadowUrl.startsWith('http') ? shadowUrl : `https://${shadowUrl}`;
-      const url = new URL(urlString);
-      url.searchParams.set('utm_source', 'llm_ingest');
-      url.searchParams.set('utm_medium', 'ai_chat');
-      url.searchParams.set('utm_campaign', 'fact_vault_magnet');
-      setGeneratedShadowLink(url.toString());
+      const response = await fetch('/api/shadow-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          originalUrl: shadowUrl,
+          userId: user?.uid
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setGeneratedShadowLink(data.shadowUrl);
+      } else {
+        throw new Error(data.error || 'Failed to generate link');
+      }
     } catch (e) {
       alert("Please enter a valid URL (e.g., auspexi.com/report)");
+    } finally {
+      setIsGeneratingLink(false);
     }
   };
 
@@ -242,9 +257,11 @@ export function Overview() {
             />
             <button 
               onClick={generateShadowLink}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+              disabled={isGeneratingLink || !shadowUrl.trim()}
+              className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex items-center justify-center gap-2"
             >
-              Generate Link
+              {isGeneratingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {isGeneratingLink ? 'Generating...' : 'Generate Link'}
             </button>
           </div>
           {generatedShadowLink && (

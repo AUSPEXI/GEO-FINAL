@@ -1,5 +1,5 @@
 {
   "name": "GEO Website",
   "description": "",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["microphone"]
 }

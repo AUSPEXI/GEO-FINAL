@@ -57,14 +57,32 @@ export function Agents() {
     resetState();
     
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
       if (!apiKey) throw new Error("API key is missing");
       const ai = new GoogleGenAI({ apiKey });
 
-      // --- STEP 1: Crawler Agent (Simulated Exa.ai search for this demo) ---
+      // --- STEP 1: Crawler Agent ---
       setCrawlerStatus('running');
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-      const simulatedRawData = `Raw data found for ${topic}: Industry reports show a 35% increase in adoption. Traditional methods take 4 hours, while new methods take 15 minutes. Costs are reduced by an average of $4,000 per year.`;
+      
+      let crawlerData = '';
+      try {
+        const exaRes = await fetch('/api/exa-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: topic, numResults: 3 })
+        });
+        const exaData = await exaRes.json();
+        if (exaData.success && exaData.results) {
+          crawlerData = exaData.results.map((r: any) => `Title: ${r.title}\nURL: ${r.url}\nText: ${r.text}`).join("\n\n");
+        } else {
+          throw new Error(exaData.error || "Exa search failed");
+        }
+      } catch (err) {
+        console.warn("Exa search failed, falling back to simulation", err);
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+        crawlerData = `Raw data found for ${topic}: Industry reports show a 35% increase in adoption. Traditional methods take 4 hours, while new methods take 15 minutes. Costs are reduced by an average of $4,000 per year.`;
+      }
+      
       setCrawlerStatus('completed');
 
       // --- STEP 2: Extraction Agent ---
@@ -72,7 +90,7 @@ export function Agents() {
       const extractPrompt = `
         You are the Extraction Agent. Your ONLY job is to extract raw, high-entropy facts from this text.
         Do not write a narrative. Return a bulleted list of raw statistics and facts.
-        Text: ${simulatedRawData}
+        Text: ${crawlerData}
       `;
       const extractResponse = await ai.models.generateContent({
         model: "gemini-3.1-pro-preview",

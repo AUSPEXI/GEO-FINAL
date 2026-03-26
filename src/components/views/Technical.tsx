@@ -40,7 +40,7 @@ export function Technical() {
     
     setIsProcessing(true);
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
       if (!apiKey) throw new Error("API key is missing");
       
       const ai = new GoogleGenAI({ apiKey });
@@ -86,7 +86,7 @@ export function Technical() {
     
     setIsGeneratingSchema(true);
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
       if (!apiKey) throw new Error("API key is missing");
       
       const ai = new GoogleGenAI({ apiKey });
@@ -141,21 +141,25 @@ export default {
 
     // 3. Fetch the latest GEO Schema for this specific URL from Auspexi
     // In production, this would hit the Auspexi API:
-    // const schemaRes = await fetch(\`https://api.auspexi.com/v1/schema?url=\${url.href}\`);
-    // const schemaData = await schemaRes.json();
-    
-    const schemaData = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [{
-        "@type": "Question",
-        "name": "What is the primary benefit of Edge SEO?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "It guarantees AI crawlers can read semantic data without executing JavaScript."
-        }
-      }]
-    };
+    const schemaRes = await fetch(\`https://api.auspexi.com/v1/schema?url=\${url.href}\`);
+    let schemaData = {};
+    if (schemaRes.ok) {
+      schemaData = await schemaRes.json();
+    } else {
+      // Fallback schema if API fails
+      schemaData = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [{
+          "@type": "Question",
+          "name": "What is the primary benefit of Edge SEO?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It guarantees AI crawlers can read semantic data without executing JavaScript."
+          }
+        }]
+      };
+    }
 
     // 4. Inject the schema into the <head> of the HTML
     class SchemaRewriter {

@@ -23,7 +23,7 @@ export const AmplifyModal: React.FC<AmplifyModalProps> = ({ fact, onClose }) => 
   useEffect(() => {
     const generateContent = async () => {
       try {
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
         if (!apiKey) {
           throw new Error("API key is missing");
         }

@@ -99,7 +99,12 @@ export function VoiceAgent() {
       setIsConnecting(true);
       setError(null);
 
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
+      if (!apiKey) {
+        throw new Error("Gemini API key is required. Please add VITE_GEMINI_API_KEY to your .env file.");
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
 
       const sessionPromise = ai.live.connect({
         model: "gemini-2.5-flash-native-audio-preview-12-2025",
@@ -128,36 +133,42 @@ export function VoiceAgent() {
         },
         callbacks: {
           onopen: async () => {
-            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-            audioContextRef.current = audioCtx;
-            nextPlayTimeRef.current = audioCtx.currentTime;
+            try {
+              const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+              audioContextRef.current = audioCtx;
+              nextPlayTimeRef.current = audioCtx.currentTime;
 
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1 } });
-            mediaStreamRef.current = stream;
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1 } });
+              mediaStreamRef.current = stream;
 
-            const source = audioCtx.createMediaStreamSource(stream);
-            const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+              const source = audioCtx.createMediaStreamSource(stream);
+              const processor = audioCtx.createScriptProcessor(4096, 1, 1);
 
-            processor.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              const int16Data = float32ToInt16(inputData);
-              const base64 = int16ToBase64(int16Data);
-              sessionPromise.then((session) => {
-                session.sendRealtimeInput({
-                  audio: { data: base64, mimeType: 'audio/pcm;rate=16000' }
+              processor.onaudioprocess = (e) => {
+                const inputData = e.inputBuffer.getChannelData(0);
+                const int16Data = float32ToInt16(inputData);
+                const base64 = int16ToBase64(int16Data);
+                sessionPromise.then((session) => {
+                  session.sendRealtimeInput({
+                    audio: { data: base64, mimeType: 'audio/pcm;rate=16000' }
+                  });
                 });
-              });
-            };
+              };
 
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.value = 0;
-            source.connect(processor);
-            processor.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+              const gainNode = audioCtx.createGain();
+              gainNode.gain.value = 0;
+              source.connect(processor);
+              processor.connect(gainNode);
+              gainNode.connect(audioCtx.destination);
 
-            scriptProcessorRef.current = processor;
-            setIsConnected(true);
-            setIsConnecting(false);
+              scriptProcessorRef.current = processor;
+              setIsConnected(true);
+              setIsConnecting(false);
+            } catch (err: any) {
+              console.error("Microphone access error:", err);
+              setError("Microphone access denied or unavailable. Please check your permissions.");
+              disconnect();
+            }
           },
           onmessage: (message: LiveServerMessage) => {
             if (message.serverContent?.interrupted) {

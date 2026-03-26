@@ -183,6 +183,63 @@ Format the output in clean Markdown.
     }
   });
 
+  app.get("/api/schema", async (req, res) => {
+    try {
+      const { url } = req.query;
+      if (!url) {
+        return res.status(400).json({ error: "URL is required" });
+      }
+      
+      // In a real application, this would fetch the specific schema for the URL from Firestore
+      // For demonstration, we return a dynamic schema based on the requested URL
+      const schemaData = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [{
+          "@type": "Question",
+          "name": `What is the primary benefit of Edge SEO for ${url}?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It guarantees AI crawlers can read semantic data without executing JavaScript."
+          }
+        }]
+      };
+      
+      res.json(schemaData);
+    } catch (error: any) {
+      console.error("Error fetching schema:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/shadow-link", async (req, res) => {
+    try {
+      const { originalUrl, userId } = req.body;
+      if (!originalUrl) {
+        return res.status(400).json({ error: "Original URL is required" });
+      }
+
+      // Here we would typically store the link mapping in Firestore for analytics tracking
+      // For now, we'll generate the UTM-tagged URL
+      const urlString = originalUrl.startsWith('http') ? originalUrl : `https://${originalUrl}`;
+      const url = new URL(urlString);
+      
+      // Add standard GEO tracking parameters
+      url.searchParams.set('utm_source', 'llm_ingest');
+      url.searchParams.set('utm_medium', 'ai_chat');
+      url.searchParams.set('utm_campaign', 'fact_vault_magnet');
+      
+      // Add a unique tracking ID that we could use to correlate in our database
+      const trackingId = Math.random().toString(36).substring(2, 15);
+      url.searchParams.set('geo_trk', trackingId);
+
+      res.json({ success: true, shadowUrl: url.toString(), trackingId });
+    } catch (error: any) {
+      console.error("Error generating shadow link:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/create-checkout-session", async (req, res) => {
     try {
       const { tier, userId, email } = req.body;
