@@ -3,16 +3,16 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  firestoreDatabaseId: import.meta.env.VITE_FIRESTORE_DATABASE_ID
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "dummy-api-key",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "dummy-auth-domain",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "dummy-project-id",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "dummy-storage-bucket",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "dummy-sender-id",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "dummy-app-id",
+  firestoreDatabaseId: import.meta.env.VITE_FIRESTORE_DATABASE_ID || "(default)"
 };
 
-if (!firebaseConfig.apiKey) {
+if (firebaseConfig.apiKey === "dummy-api-key") {
   console.error("Missing Firebase API Key. Please ensure your .env file is configured correctly with VITE_FIREBASE_API_KEY.");
 }
 
