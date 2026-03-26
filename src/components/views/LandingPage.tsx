@@ -173,42 +173,62 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
           <div className="absolute inset-0 bg-zinc-950 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
         </div>
 
-        <div className="max-w-5xl mx-auto px-6 relative z-10 text-center">
-          <div className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-zinc-800/50 border border-zinc-700 text-zinc-300 text-sm font-medium mb-8">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-500"></span>
-            </span>
-            The New Era of Search is Here
-          </div>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight mb-8 leading-[1.1]">
-            Don't let AI leave your <br className="hidden md:block" />
-            <span className="text-white">brand behind.</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-zinc-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Traditional SEO is dying. Auspexi is the premier Generative Engine Optimization (GEO) platform that ensures your brand is cited, recommended, and prioritized by AI models like Gemini, ChatGPT, and Claude.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <div className="flex w-full max-w-md items-center space-x-2 bg-zinc-900/50 p-2 rounded-2xl border border-zinc-800 backdrop-blur-sm">
-              <Input 
-                type="email" 
-                placeholder="Enter your work email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent border-0 focus-visible:ring-0 text-white placeholder:text-zinc-500 h-12"
-              />
-              <Button onClick={() => handleOpenModal('trial')} className="bg-white hover:bg-zinc-200 text-black h-12 px-6 rounded-xl font-medium">
-                Get Started
-              </Button>
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Left Column */}
+            <div className="text-left md:col-span-5">
+              <div className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-zinc-800/50 border border-zinc-700 text-zinc-300 text-sm font-medium mb-6">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-500"></span>
+                </span>
+                The New Era of Search is Here
+              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold font-heading tracking-tight mb-6 leading-[1.1]">
+                Don't let AI leave your <br className="hidden xl:block" />
+                <span className="text-white">brand behind.</span>
+              </h1>
+              <p className="text-xl text-zinc-400 mb-6 leading-relaxed">
+                Traditional SEO is dying. Auspexi is the premier Generative Engine Optimization (GEO) platform that ensures your brand is cited, recommended, and prioritized by AI models like Gemini, ChatGPT, and Claude.
+              </p>
+              
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 mb-8">
+                <h3 className="text-white font-semibold mb-2">What is GEO?</h3>
+                <p className="text-sm text-zinc-300 leading-relaxed">
+                  Generative Engine Optimization (GEO) is the evolution of SEO. Instead of optimizing for blue links, GEO ensures your brand is the definitive answer inside AI models, securing your "Share of Voice" in the AI latent space.
+                </p>
+              </div>
+              
+              <div className="flex flex-col gap-3 w-full max-w-md">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Input 
+                    type="email" 
+                    placeholder="Enter your work email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-zinc-700 text-white placeholder:text-zinc-500 h-12"
+                  />
+                  <Input 
+                    type="text" 
+                    placeholder="Company domain" 
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    className="bg-zinc-900/50 border-zinc-800 focus-visible:ring-zinc-700 text-white placeholder:text-zinc-500 h-12"
+                  />
+                </div>
+                <Button onClick={() => handleOpenModal('report')} className="bg-white hover:bg-zinc-200 text-black h-12 w-full rounded-xl font-medium text-lg">
+                  Get Free Report
+                </Button>
+              </div>
             </div>
-          </div>
-          
-          <div className="w-full max-w-4xl mx-auto h-[400px] md:h-[500px] lg:h-[600px] relative rounded-2xl overflow-hidden border border-zinc-800/50 bg-zinc-900/20 shadow-2xl">
-            <SplineScene 
-              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-              className="w-full h-full"
-            />
+
+            {/* Right Column */}
+            <div className="w-full h-[400px] md:h-[450px] lg:h-[600px] relative rounded-2xl overflow-hidden border border-zinc-800/50 bg-zinc-900/20 shadow-2xl md:col-span-7">
+              <SplineScene 
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full"
+              />
+            </div>
           </div>
         </div>
       </section>
