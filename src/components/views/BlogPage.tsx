@@ -58,7 +58,7 @@ export const blogPosts = [
 export function BlogPage() {
   const { signInWithGoogle } = useAuth();
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-zinc-500/30">
+    <div className="min-h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-zinc-500/30 overflow-x-hidden">
       <PublicHeader onLoginClick={signInWithGoogle} />
       
       <main className="pt-32 pb-24">

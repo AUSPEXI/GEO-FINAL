@@ -60,6 +60,17 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
     }
   };
 
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
+
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    checkIsDesktop();
+    window.addEventListener('resize', checkIsDesktop);
+    return () => window.removeEventListener('resize', checkIsDesktop);
+  }, []);
+
   const handleOpenModal = (source: string) => {
     setModalSource(source);
     setIsModalOpen(true);
@@ -153,7 +164,7 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-zinc-500/30">
+    <div className="min-h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-zinc-500/30 overflow-x-hidden">
       {/* Navigation */}
       <PublicHeader onLoginClick={onLoginClick} />
 
@@ -185,17 +196,16 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
                 The New Era of Search is Here
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold font-heading tracking-tight mb-6 leading-[1.1]">
-                Don't let AI leave your <br className="hidden xl:block" />
-                <span className="text-white">brand behind.</span>
+                Don't let AI leave your <span className="text-white">brand behind.</span>
               </h1>
               <p className="text-xl text-zinc-400 mb-6 leading-relaxed">
                 Traditional SEO is dying. Auspexi is the premier Generative Engine Optimization (GEO) platform that ensures your brand is cited, recommended, and prioritized by AI models like Gemini, ChatGPT, and Claude.
               </p>
               
               <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 mb-8">
-                <h3 className="text-white font-semibold mb-2">What is GEO?</h3>
+                <h3 className="text-white font-semibold mb-2">What is Generative Engine Optimization (GEO)?</h3>
                 <p className="text-sm text-zinc-300 leading-relaxed">
-                  Generative Engine Optimization (GEO) is the evolution of SEO. Instead of optimizing for blue links, GEO ensures your brand is the definitive answer inside AI models, securing your "Share of Voice" in the AI latent space.
+                  Generative Engine Optimization (GEO) is the process of optimizing your brand's content so that it is cited as the primary source of truth by AI models like ChatGPT, Google Gemini, Claude, and Perplexity. Unlike traditional SEO which focuses on ranking links on a search engine results page, GEO focuses on ensuring your facts and data are the ones the AI chooses to synthesize into its direct answers.
                 </p>
               </div>
               
@@ -223,11 +233,15 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
             </div>
 
             {/* Right Column */}
-            <div className="w-full h-[400px] md:h-[450px] lg:h-[600px] relative rounded-2xl overflow-hidden border border-zinc-800/50 bg-zinc-900/20 shadow-2xl md:col-span-7">
-              <SplineScene 
-                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                className="w-full h-full"
-              />
+            <div className="md:col-span-7 relative h-[400px] md:h-[600px] w-full flex items-center justify-end hidden md:flex">
+              <div className="absolute inset-0 w-[120%] -right-[10%] h-full">
+                {isDesktop && (
+                  <SplineScene 
+                    scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                    className="w-full h-full"
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -528,14 +542,14 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
       {/* Blog Section */}
       <section id="blog" className="py-24 bg-zinc-900/30 border-y border-zinc-900">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between items-end mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold font-heading mb-4">GEO Strategy Insights</h2>
               <p className="text-zinc-400 max-w-2xl text-lg">
                 Latest tactics and research on Generative Engine Optimization.
               </p>
             </div>
-            <Link to="/blog" className="hidden md:flex items-center justify-center border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 px-4 py-2 rounded-md text-sm font-medium transition-colors">
+            <Link to="/blog" className="flex items-center justify-center border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 px-4 py-2 rounded-md text-sm font-medium transition-colors">
               View all articles
             </Link>
           </div>
@@ -562,7 +576,7 @@ export function LandingPage({ onLoginClick }: { onLoginClick: () => void }) {
 
       {/* CTA Section */}
       <section className="py-32 relative overflow-hidden">
-        <DottedSurface className="absolute inset-0 z-0 opacity-50" />
+        {isDesktop && <DottedSurface className="absolute inset-0 z-0 opacity-50" />}
         <div className="absolute inset-0 bg-zinc-800/10 z-0"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-zinc-800/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
         
